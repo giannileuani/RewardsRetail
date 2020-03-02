@@ -17,6 +17,9 @@ import com.digiwack.retailreward.InventoryRequest;
 import com.digiwack.retailreward.InventoryResponse;
 import com.digiwack.retailreward.RemoveItemRequest;
 
+/**
+*An Endpoint is roughly a *.wsdl's method functionality
+*/
 @Endpoint
 public class InventoryEndpoint {
 	/*
@@ -49,23 +52,36 @@ public class InventoryEndpoint {
 		}
 		return response;
 	}
+	/**
+	*Customer request to get back the customer's cart status
+	*/
 	@PayloadRoot(namespace = NAMESPACE_URI, localPart = "CartStatusRequest")
 	@ResponsePayload
 	public CartStatusResponse getCartStatus(@RequestPayload CartStatusRequest request) {
 		return getCartStatus(request.getCustomer());
 	}	
+	/**
+	*Customer and item name request to add said item to shopping cart
+	*/
 	@PayloadRoot(namespace = NAMESPACE_URI, localPart = "AddItemRequest")
 	@ResponsePayload
 	public CartStatusResponse addItemUpdate(@RequestPayload AddItemRequest request) {
 		warehouse.addItem(request.getCustomer(), request.getItemName());
 		return getCartStatus(request.getCustomer());
 	}	
+	/**
+	*Customer and item name request to remove said item from shopping cart
+	*/
 	@PayloadRoot(namespace = NAMESPACE_URI, localPart = "RemoveItemRequest")
 	@ResponsePayload
 	public CartStatusResponse removeItemUpdate(@RequestPayload RemoveItemRequest request) {
 		warehouse.removeItem(request.getCustomer(), request.getItemName());
 		return getCartStatus(request.getCustomer());
 	}
+	/**
+	*Construct the CartStatusResponse that will be turned into a SOAP object
+	*sent back to client
+	*/
 	private CartStatusResponse getCartStatus(CustomerType cust) {
 		Vector<CartItemType> cart=warehouse.getCartItems(cust);
 		CartStatusResponse response = new CartStatusResponse();
