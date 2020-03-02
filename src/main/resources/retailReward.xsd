@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema targetNamespace="http://digiwack.com/retailReward" elementFormDefault="qualified" xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://digiwack.com/retailReward">
+
+    <element name="InventoryRequest">
+    	<complexType></complexType>
+    </element>
+
+    <element name="InventoryResponse">
+    	<complexType>
+    		<sequence>
+    			<element name="AnItem" type="tns:InventoryItem" maxOccurs="unbounded" minOccurs="1"></element>
+    		</sequence>
+    	</complexType>
+    </element>
+
+    <element name="AddItemRequest">
+    	<complexType>
+    		<sequence>
+    			<element name="Customer" type="tns:CustomerType"></element>
+    			<element name="ItemName" type="string"></element>
+    		</sequence>
+    	</complexType>
+    </element>
+
+    <element name="CartStatusResponse">
+    	<complexType>
+    		<sequence>
+    			<element name="CartItem" type="tns:CartItemType"
+    				maxOccurs="unbounded" minOccurs="1">
+    			</element>
+    		</sequence>
+    		<attribute name="ItemCount" type="int"></attribute>
+    		<attribute name="TotalCost" type="int"></attribute>
+    		<attribute name="RewardPoints" type="int"></attribute>
+    	</complexType>
+    </element>
+
+    <complexType name="InventoryItem">
+    	<attribute name="itemName" type="string"></attribute>
+    	<attribute name="itemCost" type="int"></attribute>
+    </complexType>
+
+    <complexType name="CustomerType">
+    	<attribute name="customerName" type="string"></attribute>
+    	<attribute name="customerPhone" type="string"></attribute>
+    </complexType>
+
+    <complexType name="CartItemType">
+    	<attribute name="itemName" type="string"></attribute>
+    	<attribute name="itemCount" type="int"></attribute>
+    	<attribute name="itemCost" type="int"></attribute>
+    </complexType>
+
+    <element name="RemoveItemRequest">
+    	<complexType>
+    		<sequence>
+    			<element name="Customer" type="tns:CustomerType"></element>
+    			<element name="ItemName" type="string"></element>
+    		</sequence>
+    	</complexType>
+    </element>
+
+    <element name="CartStatusRequest">
+    	<complexType>
+    		<sequence>
+    			<element name="Customer" type="tns:CustomerType"></element>
+    		</sequence>
+    	</complexType>
+    </element>
+</schema>
