@@ -17,6 +17,10 @@ import com.digiwack.retailreward.CartItemType;
 import com.digiwack.retailreward.CustomerType;
 import com.digiwack.retailreward.InventoryItem;
 
+/**
+*Main portion of business logic is here. Could've put in database functionallity,
+* but figured it would be simpler to only keep everything in memory instead.
+*/
 @Component
 public class InventoryWarehouse {
 
