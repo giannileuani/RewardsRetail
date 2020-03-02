@@ -5,6 +5,9 @@ document.addEventListener('DOMContentLoaded', function() {
 	populateInventoryListings();
 }, false);
 
+/*
+*Quick'n'dirty soap object creation
+*/
 var inventoryReq=
 	"<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ret=\"http://digiwack.com/retailReward\">"+
 "<soapenv:Header/>"+
@@ -17,6 +20,9 @@ function populateInventoryListings() {
 	var xhr=new XMLHttpRequest();
 	xhr.onload=function() {
 		if (xhr.status===200) {
+			/*
+			*We get back a list of items in the inventory in a SOAP response
+			*/
 			var elems=xhr.responseXML.getElementsByTagName("ns2:AnItem");
 			var respText=xhr.responseText;
 			var theTable="<table border='1'>";
@@ -40,6 +46,9 @@ function populateInventoryListings() {
 	xhr.setRequestHeader("Content-type", "text/xml");
 	xhr.send(inventoryReq);
 }
+/*
+*Quick'n'dirty SOAP request for a user's cart
+*/
 var cartReq1 = 
 	"<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ret=\"http://digiwack.com/retailReward\">"+
 "<soapenv:Header/><soapenv:Body><ret:CartStatusRequest>"+
@@ -56,6 +65,9 @@ function lookupCustomer() {
 		var xhr=new XMLHttpRequest();
 		xhr.onload=function() {
 			if (xhr.status===200) {
+				/*
+				*parse shopping cart response
+				*/
 				loadCartResponse(xhr);
 			}
 		}
@@ -66,6 +78,9 @@ function lookupCustomer() {
 		alert("need a customer name and phone number");
 	}
 }
+/*
+*Quick'n'dirty SOAP request to add item to shopping cart
+*/
 var addItemReq1=
 	"<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ret=\"http://digiwack.com/retailReward\">"+
    "<soapenv:Header/><soapenv:Body><ret:AddItemRequest>"+
@@ -83,6 +98,9 @@ function addItemForCustomer(itm) {
 		var xhr=new XMLHttpRequest();
 		xhr.onload=function() {
 			if (xhr.status===200) {
+				/*
+				*parse shopping cart response
+				*/
 				loadCartResponse(xhr);
 			}
 		}
@@ -93,6 +111,9 @@ function addItemForCustomer(itm) {
 		alert("need a customer name and phone number");
 	}
 }
+/*
+*Quick'n'dirty SOAP request to remove item from shopping cart
+*/
 var remItemReq1=
 	"<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ret=\"http://digiwack.com/retailReward\">"+
    "<soapenv:Header/><soapenv:Body><ret:RemoveItemRequest>"+
@@ -110,6 +131,9 @@ function removeItemForCustomer(itm) {
 		var xhr=new XMLHttpRequest();
 		xhr.onload=function() {
 			if (xhr.status===200) {
+				/*
+				*parse shopping cart response
+				*/
 				loadCartResponse(xhr);
 			}
 		}
