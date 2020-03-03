@@ -2,7 +2,11 @@
 * initial call to populate inventory for sale
 */
 document.addEventListener('DOMContentLoaded', function() {
-	populateInventoryListings();
+//	populateInventoryListings();
+	/*
+	 * Switch to using a Restful api call
+	 */
+	populateInventoryListingsREST();
 }, false);
 
 /*
@@ -34,6 +38,9 @@ function populateInventoryListings() {
 				theTable+="</td><td><button onClick=\"addItemForCustomer('";
 				theTable+=elems[i].getAttribute("itemName");
 				theTable+="')\">Add to cart</button>";
+				theTable+="</td><td><button onClick=\"addItemForCustomerREST('";
+				theTable+=elems[i].getAttribute("itemName");
+				theTable+="')\">Add to cart REST</button>";
 				theTable+="</td></tr>";
 			}
 			theTable+="</table>";
@@ -45,6 +52,40 @@ function populateInventoryListings() {
 	xhr.open("POST", "service/retaleWIZZ.wsdl");
 	xhr.setRequestHeader("Content-type", "text/xml");
 	xhr.send(inventoryReq);
+}
+/*
+ * Similar to populateInventoryListings, but its making a GET call to a url to get
+ * its results
+ */
+function populateInventoryListingsREST() {
+	var xhr=new XMLHttpRequest();
+	xhr.onload=function() {
+		if (xhr.status===200) {
+			/*
+			*We get back a list of items in the inventory in a JSON object
+			*/
+			var inventory=JSON.parse(xhr.responseText);
+			var theTable="<table border='1'>";
+			for (var i=0; i<inventory.count; i++) {
+				theTable+="<tr><td>";
+				theTable+=inventory.items[i].name;
+				theTable+="</td><td>";
+				theTable+="$"+inventory.items[i].price;
+				theTable+="</td><td><button onClick=\"addItemForCustomer('";
+				theTable+=inventory.items[i].name;
+				theTable+="')\">Add to cart</button>";
+				theTable+="</td><td><button onClick=\"addItemForCustomerREST('";
+				theTable+=inventory.items[i].name;
+				theTable+="')\">Add to cart REST</button>";
+				theTable+="</td></tr>";
+			}
+			theTable+="</table>";
+			var inventoryListingsDiv = document.getElementById("inventoryListingsDiv");
+			inventoryListingsDiv.innerHTML=theTable;
+		}
+	}
+	xhr.open("GET", "inventory");
+	xhr.send(null);
 }
 /*
 *Quick'n'dirty SOAP request for a user's cart
@@ -73,6 +114,30 @@ function lookupCustomer() {
 		}
 		xhr.open("POST", "service/retaleWIZZ.wsdl");
 		xhr.setRequestHeader("Content-type", "text/xml");
+		xhr.send(cartReq);
+	} else {
+		alert("need a customer name and phone number");
+	}
+}
+function lookupCustomerREST() {
+	var custName=document.getElementById("custNameFld").value;
+	var custPhone=document.getElementById("custPhoneFld").value;
+	var cartReq="";
+	if (custName.length>0 && custPhone.length>0) {
+		var xhr=new XMLHttpRequest();
+		xhr.onload=function() {
+			if (xhr.status===200) {
+				/*
+				*parse shopping cart response
+				*/
+				loadCartResponseREST(xhr);
+			}
+		}
+		/*
+		 * Call restful api
+		 */
+		xhr.open("GET", "shoppingCart?customerName="+custName+"&customerPhone="+custPhone);
+//		xhr.setRequestHeader("Content-type", "text/xml");
 		xhr.send(cartReq);
 	} else {
 		alert("need a customer name and phone number");
@@ -111,6 +176,29 @@ function addItemForCustomer(itm) {
 		alert("need a customer name and phone number");
 	}
 }
+function addItemForCustomerREST(itm) {
+	var custName=document.getElementById("custNameFld").value;
+	var custPhone=document.getElementById("custPhoneFld").value;
+	if (custName.length>0 && custPhone.length>0) {
+		var xhr=new XMLHttpRequest();
+		xhr.onload=function() {
+			if (xhr.status===200) {
+				/*
+				*parse shopping cart response
+				*/
+				loadCartResponseREST(xhr);
+			}
+		}
+		/*
+		 * Call restful api
+		 */
+		xhr.open("GET", "shoppingCartAdd?customerName="+custName+"&customerPhone="+custPhone+"&itemName="+itm);
+//		xhr.setRequestHeader("Content-type", "text/xml");
+		xhr.send(null);
+	} else {
+		alert("need a customer name and phone number");
+	}
+}
 /*
 *Quick'n'dirty SOAP request to remove item from shopping cart
 */
@@ -144,9 +232,38 @@ function removeItemForCustomer(itm) {
 		alert("need a customer name and phone number");
 	}
 }
+function removeItemForCustomerREST(itm) {
+	var custName=document.getElementById("custNameFld").value;
+	var custPhone=document.getElementById("custPhoneFld").value;
+	if (custName.length>0 && custPhone.length>0) {
+		var xhr=new XMLHttpRequest();
+		xhr.onload=function() {
+			if (xhr.status===200) {
+				/*
+				*parse shopping cart response
+				*/
+				loadCartResponseREST(xhr);
+			}
+		}
+		/*
+		 * Call restful api
+		 */
+		xhr.open("GET", "shoppingCartRemove?customerName="+custName+"&customerPhone="+custPhone+"&itemName="+itm);
+//		xhr.setRequestHeader("Content-type", "text/xml");
+		xhr.send(null);
+	} else {
+		alert("need a customer name and phone number");
+	}
+}
 function loadCartResponse(xhr) {
 	var respText=xhr.responseText;
+	/*
+	 * Total summary element with item count, total cost, reward points
+	 */
 	var totItem=xhr.responseXML.getElementsByTagName("ns2:CartStatusResponse");
+	/*
+	 * Individual items and their counts in the shopping cart
+	 */
 	var cItems = xhr.responseXML.getElementsByTagName("ns2:CartItem");
 	var theTable="<table border='1'>";
 	for (var i=0; i<cItems.length; i++) {
@@ -172,6 +289,38 @@ function loadCartResponse(xhr) {
 	var inventoryListingsDiv = document.getElementById("cartListingsDiv");
 	inventoryListingsDiv.innerHTML=theTable;
 }
+function loadCartResponseREST(xhr) {
+	var cart=JSON.parse(xhr.responseText);
+	var theTable="<table border='1'>";
+	for (var i=0; i<cart.count; i++) {
+		theTable+="<tr><td>";
+		theTable+=cart.items[i].name;
+		theTable+="</td><td>";
+		theTable+=cart.items[i].count;
+		theTable+="</td><td>";
+		theTable+="$"+cart.items[i].cost;
+		theTable+="</td><td><button onClick=\"removeItemForCustomer('";
+		theTable+=cart.items[i].name;
+		theTable+="')\">Remove from cart</button>";
+		theTable+="</td><td><button onClick=\"removeItemForCustomerREST('";
+		theTable+=cart.items[i].name;
+		theTable+="')\">Remove from cart REST</button>";
+		theTable+="</td></tr>";
+	}
+	theTable+="<tr><td>Totals</td><td>";
+	theTable+=cart.totalItemCount;
+	theTable+="</td><td>";
+	theTable+="$"+cart.totalCost;
+	theTable+="</td><td/></tr>";
+	theTable+="<tr><td>Reward Points:</td><td colspan=\"3\">";
+	theTable+=cart.rewards;
+	theTable+="</td></tr></table>";
+	var inventoryListingsDiv = document.getElementById("cartListingsDiv");
+	inventoryListingsDiv.innerHTML=theTable;
+}
+/*
+ * Leftover testing
+ */
 function callALert(msg) {
 	alert(msg);
 }
