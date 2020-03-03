@@ -1,5 +1,8 @@
 package com.digiwack.rest;
 
+/**
+*Github seems to have forgotten to send this file down to my laptop when testing
+*/
 public class InventoryItem {
 
 	private String name;
