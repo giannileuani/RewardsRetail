@@ -12,9 +12,6 @@ import org.springframework.ws.wsdl.wsdl11.DefaultWsdl11Definition;
 import org.springframework.xml.xsd.SimpleXsdSchema;
 import org.springframework.xml.xsd.XsdSchema;
 
-/**
-*This class is where the actual *.wsdl is created for the webapp
-*/
 @EnableWs
 @Configuration
 public class WebserviceConfig extends WsConfigurerAdapter {

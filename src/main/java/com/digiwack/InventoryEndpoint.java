@@ -3,11 +3,19 @@ package com.digiwack;
 import java.util.Vector;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.ws.server.endpoint.annotation.Endpoint;
 import org.springframework.ws.server.endpoint.annotation.PayloadRoot;
 import org.springframework.ws.server.endpoint.annotation.RequestPayload;
 import org.springframework.ws.server.endpoint.annotation.ResponsePayload;
 
+import com.digiwack.rest.CartItem;
+import com.digiwack.rest.CustomerId;
+import com.digiwack.rest.InventoryItem;
+import com.digiwack.rest.InventoryManifest;
+import com.digiwack.rest.ShoppingCart;
 import com.digiwack.retailreward.AddItemRequest;
 import com.digiwack.retailreward.CartItemType;
 import com.digiwack.retailreward.CartStatusRequest;
@@ -17,9 +25,7 @@ import com.digiwack.retailreward.InventoryRequest;
 import com.digiwack.retailreward.InventoryResponse;
 import com.digiwack.retailreward.RemoveItemRequest;
 
-/**
-*An Endpoint is roughly a *.wsdl's method functionality
-*/
+@RestController
 @Endpoint
 public class InventoryEndpoint {
 	/*
@@ -52,38 +58,68 @@ public class InventoryEndpoint {
 		}
 		return response;
 	}
-	/**
-	*Customer request to get back the customer's cart status
-	*/
+	
+	@GetMapping("/inventory")
+	public InventoryManifest inventoryManifest() {
+		InventoryManifest mnf=new InventoryManifest();
+		Vector<String> keys=warehouse.getAllItems();
+		for (String key:keys) {
+			com.digiwack.retailreward.InventoryItem itm = warehouse.getItem(key);
+			mnf.addItem(new InventoryItem(itm.getItemName(),itm.getItemCost()));
+		}
+		return mnf;
+	}
+	
 	@PayloadRoot(namespace = NAMESPACE_URI, localPart = "CartStatusRequest")
 	@ResponsePayload
 	public CartStatusResponse getCartStatus(@RequestPayload CartStatusRequest request) {
 		return getCartStatus(request.getCustomer());
-	}	
-	/**
-	*Customer and item name request to add said item to shopping cart
-	*/
+	}
+	@GetMapping("/shoppingCart")
+	public ShoppingCart getShoppingCart(
+			@RequestParam(value = "customerName", defaultValue = "Jim") String customerName,
+			@RequestParam(value = "customerPhone", defaultValue = "just holler") String customerPhone) {
+		CustomerId cid=new CustomerId(customerName, customerPhone);
+		return getCartStatus(cid);
+	}
+	
 	@PayloadRoot(namespace = NAMESPACE_URI, localPart = "AddItemRequest")
 	@ResponsePayload
 	public CartStatusResponse addItemUpdate(@RequestPayload AddItemRequest request) {
-		warehouse.addItem(request.getCustomer(), request.getItemName());
+		String custKey=warehouse.getCustomerKey(request.getCustomer());
+		warehouse.addItem(custKey, request.getItemName());
 		return getCartStatus(request.getCustomer());
-	}	
-	/**
-	*Customer and item name request to remove said item from shopping cart
-	*/
+	}
+	@GetMapping("/shoppingCartAdd")
+	public ShoppingCart addToShoppingCart(
+			@RequestParam(value = "customerName", defaultValue = "Jim") String customerName,
+			@RequestParam(value = "customerPhone", defaultValue = "just holler") String customerPhone,
+			@RequestParam(value = "itemName", defaultValue = "nuthin") String itemName) {
+		CustomerId cid=new CustomerId(customerName, customerPhone);
+		String custKey=warehouse.getCustomerKey(cid);
+		warehouse.addItem(custKey, itemName);
+		return getCartStatus(cid);
+	}
 	@PayloadRoot(namespace = NAMESPACE_URI, localPart = "RemoveItemRequest")
 	@ResponsePayload
 	public CartStatusResponse removeItemUpdate(@RequestPayload RemoveItemRequest request) {
-		warehouse.removeItem(request.getCustomer(), request.getItemName());
+		String custKey=warehouse.getCustomerKey(request.getCustomer());
+		warehouse.removeItem(custKey, request.getItemName());
 		return getCartStatus(request.getCustomer());
 	}
-	/**
-	*Construct the CartStatusResponse that will be turned into a SOAP object
-	*sent back to client
-	*/
+	@GetMapping("/shoppingCartRemove")
+	public ShoppingCart removeFromShoppingCart(
+			@RequestParam(value = "customerName", defaultValue = "Jim") String customerName,
+			@RequestParam(value = "customerPhone", defaultValue = "just holler") String customerPhone,
+			@RequestParam(value = "itemName", defaultValue = "nuthin") String itemName) {
+		CustomerId cid=new CustomerId(customerName, customerPhone);
+		String custKey=warehouse.getCustomerKey(cid);
+		warehouse.removeItem(custKey, itemName);
+		return getCartStatus(cid);
+	}
 	private CartStatusResponse getCartStatus(CustomerType cust) {
-		Vector<CartItemType> cart=warehouse.getCartItems(cust);
+		String custKey=warehouse.getCustomerKey(cust);
+		Vector<CartItemType> cart=warehouse.getCartItems(custKey);
 		CartStatusResponse response = new CartStatusResponse();
 		response.setItemCount(0);
 		response.setRewardPoints(0);
@@ -95,6 +131,17 @@ public class InventoryEndpoint {
 			response.setRewardPoints(computeRewardAmount(response.getTotalCost()));
 		}		
 		return response;
+	}
+	private ShoppingCart getCartStatus(CustomerId cust) {
+		String custKey=warehouse.getCustomerKey(cust);
+		Vector<CartItemType> cart=warehouse.getCartItems(custKey);
+		ShoppingCart ret=new ShoppingCart();
+		for (CartItemType cit:cart) {
+			CartItem ct=new CartItem(cit.getItemName(), cit.getItemCount(), cit.getItemCost());
+			ret.addItem(ct);
+			ret.setRewardPoints(computeRewardAmount(ret.getTotalCost()));
+		}
+		return ret;
 	}
 	/**
 	 * The original feature as requested.

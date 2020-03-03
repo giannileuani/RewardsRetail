@@ -13,14 +13,11 @@ import javax.annotation.PostConstruct;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
+import com.digiwack.rest.CustomerId;
 import com.digiwack.retailreward.CartItemType;
 import com.digiwack.retailreward.CustomerType;
 import com.digiwack.retailreward.InventoryItem;
 
-/**
-*Main portion of business logic is here. Could've put in database functionallity,
-* but figured it would be simpler to only keep everything in memory instead.
-*/
 @Component
 public class InventoryWarehouse {
 
@@ -58,13 +55,15 @@ public class InventoryWarehouse {
 		}
 		return ret;
 	}
-	private String getCustomerKey(CustomerType cust) {
+	public String getCustomerKey(CustomerType cust) {
 		return cust.getCustomerName()+":"+cust.getCustomerPhone();
 	}
-	public Vector<CartItemType> getCartItems(CustomerType cust) {
-		String cKey=getCustomerKey(cust);
-		if (customerCarts.containsKey(cKey)) {
-			return customerCarts.get(cKey);
+	public String getCustomerKey(CustomerId cust) {
+		return cust.getName()+":"+cust.getPhone();
+	}
+	public Vector<CartItemType> getCartItems(String customerKey) {
+		if (customerCarts.containsKey(customerKey)) {
+			return customerCarts.get(customerKey);
 		} else {
 			Vector<CartItemType> retCart=new Vector<CartItemType>();
 			CartItemType cit=new CartItemType();
@@ -75,6 +74,7 @@ public class InventoryWarehouse {
 			return retCart;
 		}
 	}
+	
 	public InventoryItem getItem(String itemName) {
 		if (inventoryItems.containsKey(itemName)) {
 			return inventoryItems.get(itemName);
@@ -85,11 +85,10 @@ public class InventoryWarehouse {
 			return empty;
 		}
 	}
-	public void addItem(CustomerType cust,String item) {
+	public void addItem(String customerKey,String item) {
 		InventoryItem ii=getItem(item);
-		String cKey=getCustomerKey(cust);
-		if (customerCarts.containsKey(cKey)) {
-			Vector<CartItemType> custCart=customerCarts.get(cKey);
+		if (customerCarts.containsKey(customerKey)) {
+			Vector<CartItemType> custCart=customerCarts.get(customerKey);
 			boolean found=false;
 			for (CartItemType cit:custCart) {
 				if (cit.getItemName().equals(item)) {
@@ -106,7 +105,7 @@ public class InventoryWarehouse {
 				cit.setItemCount(1);
 				custCart.add(cit);
 			}
-			customerCarts.put(cKey,custCart);
+			customerCarts.put(customerKey,custCart);
 		} else {
 			Vector<CartItemType> nucart=new Vector<CartItemType>();
 			CartItemType cit=new CartItemType();
@@ -115,14 +114,13 @@ public class InventoryWarehouse {
 			cit.setItemCost(ii.getItemCost());
 			cit.setItemCount(1);
 			nucart.add(cit);
-			customerCarts.put(cKey, nucart);
+			customerCarts.put(customerKey, nucart);
 		}
 	}
-	public void removeItem(CustomerType cust,String item) {
+	public void removeItem(String customerKey,String item) {
 		InventoryItem ii=getItem(item);
-		String cKey=getCustomerKey(cust);
-		if (customerCarts.containsKey(cKey)) {
-			Vector<CartItemType> custCart=customerCarts.get(cKey);
+		if (customerCarts.containsKey(customerKey)) {
+			Vector<CartItemType> custCart=customerCarts.get(customerKey);
 			for (Iterator<CartItemType> iter=custCart.iterator(); iter.hasNext();) {
 				CartItemType cit=iter.next();
 				if (cit.getItemName().equals(item)) {
@@ -134,7 +132,7 @@ public class InventoryWarehouse {
 					}					
 				}
 			}
-			customerCarts.put(cKey,custCart);
+			customerCarts.put(customerKey,custCart);
 		}
 	}
 }
