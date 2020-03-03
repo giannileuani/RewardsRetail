@@ -289,6 +289,22 @@ function loadCartResponse(xhr) {
 	var inventoryListingsDiv = document.getElementById("cartListingsDiv");
 	inventoryListingsDiv.innerHTML=theTable;
 }
+/*
+ * I can see the appeal in parsing a JSON object instead of XML.
+ * However, there is an *.xsd file that is used as the guideline for how the requests'n'responses
+ * are to be generated, and will be used to create the Wsdl that defines the webapp's interface
+ * for external clients to use.
+ * 
+ * JSON objects being tossed back'n'forth seem to require... far more meetings between the webapp
+ * team and client teams to get the api flow working.  This strategy may seem ideal, where everyone
+ * progresses or not at all, but it also takes time away from webapp teams forward moving development time.
+ * 
+ * I wonder if anyone will ever read this far?
+ * 
+ * If you do, just send an email to gianni.leuani@gmail.com stating that you read the comment
+ * for: RewardsRetail->serverCalls.js->loadCartResponseREST
+ *  
+ */
 function loadCartResponseREST(xhr) {
 	var cart=JSON.parse(xhr.responseText);
 	var theTable="<table border='1'>";
